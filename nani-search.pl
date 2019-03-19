@@ -70,7 +70,7 @@ location(thing(bike, yellow, 3), garage).
 
 location(flowers, garden).
 location(bench, garden).
-location(hoose, garden).
+location(thing(hoose, green, 8), garden).
 
 location(thing(sofa, purple, 8), 'living on').
 location(lamp, 'living room').
@@ -90,7 +90,7 @@ location('main door', 'main access').
 location(thing(bench, white, 100), 'main access').
 location(flowers, 'main access').
 location('main access keys', flowers).
-location(mat, 'main access').
+location(thing(mat, white, 0.7), 'main access').
 
 location(toilet, 'reciever wc').
 location(sink, 'reciever wc').
@@ -122,10 +122,10 @@ location(drawer, 'upstairs lobby').
 location(couch, 'upstairs lobby').
 
 location(thing(guitar, red, 5), 'music room').
-location(drumset, 'music room').
+location(thing(drumset, crimson, 6.4), 'music room').
 location(keyboard, 'music room').
 location(thing(microphone, black, 2), 'music room').
-location(amplifier, 'music room').
+location(thing(amplifier, black, 2.7), 'music room').
 
 location(hammock, backyard).
 location(thing(ball, blue, 0.5), backyard).
@@ -289,6 +289,15 @@ take(Thing) :-
     write(Thing),
     nl,
     !.
+take(Thing) :-
+    can_take(Thing),
+    here(Where),
+    retract(location(thing(Thing, Color, Weight), Where)),
+    asserta(has(thing(Thing, Color, Weight))),
+    write("You took: "),
+    write(Thing),
+    nl,
+    !.
 
 can_take(Thing) :-
     here(Where),
@@ -296,7 +305,7 @@ can_take(Thing) :-
 
 can_take(Thing) :-
     here(Room),
-    location(thing(Thing, _, small,_), Room).
+    location(thing(Thing, _, _), Room).
 
 can_take(_) :- % como un else
     write("There is no object with that name!"),
@@ -343,15 +352,15 @@ can_put_down(_) :- % como un else
 
 
 inventory :-
+    has(Thing),
     write("You have: "),
     nl,
-    has(Thing),
     write(" - "),
     write(Thing),
     nl,
     fail. 
-inventory :-
-    write("You don't have anything, honey").
+%inventory :-
+%    write("You don't have anything, honey").
 
 
 eat(Food) :-
