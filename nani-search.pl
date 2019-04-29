@@ -54,7 +54,7 @@ location('key holder', reciever).
 location('coat rack', reciever).
 location('glass table', reciever).
 
-location(thing(table, beige, 13), kitchen).
+location(object(table, beige, 13), kitchen).
 location(fridge, kitchen).
 location(milk, kitchen).
 location(sink, kitchen).
@@ -64,33 +64,33 @@ location(microwave, kitchen).
 location(apple, kitchen).
 location(knife, kitchen).
 
-location(thing(car, green, 140), garage).
+location(object(car, green, 140), garage).
 location(karcher, garage).
-location(thing(bike, yellow, 3), garage).
+location(object(bike, yellow, 3), garage).
 
 location(flowers, garden).
 location(bench, garden).
-location(thing(hoose, green, 8), garden).
+location(object(hoose, green, 8), garden).
 
-location(thing(sofa, purple, 8), 'living on').
+location(object(sofa, purple, 8), 'living on').
 location(lamp, 'living room').
 location(tv, 'living room').
 
-location(thing(table, brown, 24), 'dinning room').
-location(thing(piano, brown, 50), 'dinning room').
+location(object(table, brown, 24), 'dinning room').
+location(object(piano, brown, 50), 'dinning room').
 location(photograph, piano).
 location(cabinet, 'dinning room').
 
 location(washer, laundry).
-location(soap, washer).
+location(object(soap, lavender, 0.2), washer).
 location(sink, laundry).
 location(toolbox, laundry).
 
 location('main door', 'main access').
-location(thing(bench, white, 100), 'main access').
+location(object(bench, white, 100), 'main access').
 location(flowers, 'main access').
 location('main access keys', flowers).
-location(thing(mat, white, 0.7), 'main access').
+location(object(mat, white, 0.7), 'main access').
 
 location(toilet, 'reciever wc').
 location(sink, 'reciever wc').
@@ -98,11 +98,11 @@ location(shower, 'reciever wc').
 
 location('old fridge', 'storage room').
 location('broken table', 'storage room').
-location(thing(corpse, black, 50), 'storage room').
-location(thing(key, golden, 0.2), corpse).
+location(object(corpse, black, 50), 'storage room').
+location(object(key, golden, 0.2), corpse).
 
-location(thing(bed, white, 30), 'bedroom brother').
-location(thing(desk, brown, 40), 'bedroom brother').
+location(object(bed, white, 30), 'bedroom brother').
+location(object(desk, brown, 40), 'bedroom brother').
 location(closet, 'bedroom brother').
 location('secret box', 'bedroom brother').
 
@@ -121,16 +121,23 @@ location(photos, 'upstairs lobby').
 location(drawer, 'upstairs lobby').
 location(couch, 'upstairs lobby').
 
-location(thing(guitar, red, 5), 'music room').
-location(thing(drumset, crimson, 6.4), 'music room').
+location(object(guitar, red, 5), 'music room').
+location(object(drumset, crimson, 6.4), 'music room').
 location(keyboard, 'music room').
-location(thing(microphone, black, 2), 'music room').
-location(thing(amplifier, black, 2.7), 'music room').
+location(object(microphone, black, 2), 'music room').
+location(object(amplifier, black, 2.7), 'music room').
 
-location(hammock, backyard).
-location(thing(ball, blue, 0.5), backyard).
+location(object(ball, blue, 0.5), backyard).
 location(dog, backyard).
-location(thing(tree, green, 100), backyard).
+location(object(tree, green, 100), backyard).
+
+
+location_list([chair, 'mobile table', lock], kitchen).
+location_list([dogpoo, leaf], 'main access').
+location_list([cross, 'broken glass'], staricase).
+location_list([hammock, bench, pot], backyard).
+location_list([weed, cheeto], 'music room').
+location_list([controller, cushion], 'living room').
 
 
 door('main access', reciever).
@@ -199,7 +206,7 @@ where_food(X, Y) :-
 
 
 list_things(Place) :-
-    is_contained_in(thing(Thing, Color, Weight),Place),
+    is_contained_in(object(Thing, Color, Weight),Place),
     tab(2),
     write("- "),
     write('A '),
@@ -289,29 +296,36 @@ take(Thing) :-
     write(Thing),
     nl,
     !.
-take(Thing) :-
-    can_take(Thing),
-    here(Where),
-    retract(location(thing(Thing, Color, Weight), Where)),
-    asserta(has(thing(Thing, Color, Weight))),
-    write("You took: "),
-    write(Thing),
-    nl,
-    !.
 
 can_take(Thing) :-
     here(Where),
     location(Thing, Where).
-
-can_take(Thing) :-
-    here(Room),
-    location(thing(Thing, _, _), Room).
 
 can_take(_) :- % como un else
     write("There is no object with that name!"),
     nl,
     fail. % para que no la mueva cuando no se puede mover
 
+
+
+take_object(Thing) :-
+    can_take_object(Thing),
+    here(Where),
+    retract(location(object(Thing, Color, Weight), Where)),
+    asserta(has(object(Thing, Color, Weight))),
+    write("You took: "),
+    write(Thing),
+    nl,
+    !.
+
+can_take_object(Thing) :-
+    here(Where),
+    location(object(Thing, _, _), Where).
+
+can_take_object(_) :- % como un else
+    write("There is no complex object with that name!"),
+    nl,
+    fail. % para que no la mueva cuando no se puede mover
 
 
 
@@ -333,6 +347,22 @@ can_drop(_) :- % como un else
 
 
 
+drop_object(Thing) :-
+    can_drop_object(Thing),
+    retract(has(object(Thing, _, _))),
+    % no se aserta nada porque se rompe el objeto
+    write("You dropped: "),
+    write(Thing),
+    !.
+can_drop_object(Thing) :-
+    has(object(Thing, _, _)).
+can_drop_object(_) :- % como un else
+    write("You don't have that object!"),
+    nl,
+    fail. % para que no la mueva cuando no se puede mover
+    
+    
+
 
 put_down(Thing) :-
     can_put_down(Thing),
@@ -351,16 +381,35 @@ can_put_down(_) :- % como un else
     fail. % para que no la mueva cuando no se puede mover
 
 
+
+put_down_object(Thing) :-
+    can_put_down_object(Thing),
+    here(Where),
+    retract(has(object(Thing, _, _))),
+    asserta(location(object(Thing, _, _), Where)),
+    write("You put down: "),
+    write(Thing),
+    !.
+
+can_put_down_object(Thing) :-
+    has(object(Thing, _, _)).
+can_put_down_object(_) :- % como un else
+    write("You don't have that!"),
+    nl,
+    fail. % para que no la mueva cuando no se puede mover
+    
 inventory :-
-    has(Thing),
+    not(has(_)),
+    write("You don't have anything"),
+    !.
+
+inventory :-
     write("You have: "),
+    has(Thing),
     nl,
     write(" - "),
     write(Thing),
-    nl,
     fail. 
-%inventory :-
-%    write("You don't have anything, honey").
 
 
 eat(Food) :-
