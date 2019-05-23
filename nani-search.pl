@@ -19,6 +19,7 @@
 :- op(20, fx, hide).
 
 
+strength(5).
 
 % CUARTOS
 room(reciever).
@@ -272,7 +273,7 @@ goto(Place) :-
     can_go(Place),
     retract(here(_)),
     asserta(here(Place)),
-    write("You moved to: "),
+    write("You moved to the "),
     write(Place),
     nl,
     look,
@@ -303,18 +304,28 @@ can_go(Place) :- % como un else
 
 take(Thing) :-
     here(Where),
-    location(Thing, Where),
+    is_contained_in(Thing, Where),
     retract(location(Thing, Where)),
     asserta(has(Thing)),
-    write("You took: "),
+    write("You took "),
     write(Thing),
     nl,
     !.
 
 take(Thing) :-
+    is_contained_in(Thing, Object),
+    retract(location(Thing, Object)),
+    asserta(has(Thing)),
+    write("You took "),
+    write(Thing),
+    write(" from the "),
+    write(Object),
+    nl,
+    !.
+
+take(Thing) :-
     here(Where),
-    location_list(List, Where),
-    member(Thing, List),
+    is_contained_in(Thing, Where),
     remove(Thing, List, Remaining),
     retract(location_list(List, Where)),
     asserta(location_list(Remaining, Where)),
@@ -325,26 +336,11 @@ take(Thing) :-
     !.
 
 
-% can_take(Thing) :-
-%     here(Where),
-%     location(Thing, Where).
-
-
-% can_take(Thing) :-
-%     here(Where),
-%     location_list(List, Where),
-%     member(Thing, List).
-
-% can_take(_) :- % como un else
-%     write("There is no object with that name!"),
-%     nl,
-%     fail. % para que no la mueva cuando no se puede mover
-
-
-
 take(Thing) :-
     here(Where),
-    location(object(Thing, _, _), Where),
+    location(object(Thing, Color, Weight), Where),
+    strength(Strength),
+    Weight =< Strength,
     retract(location(object(Thing, Color, Weight), Where)),
     asserta(has(object(Thing, Color, Weight))),
     write("You took: "),
@@ -353,6 +349,14 @@ take(Thing) :-
     !.
 
 
+take(Thing) :-
+    here(Where),
+    location(object(Thing, _, Weight), Where),
+    strength(Strength),
+    Weight > Strength,
+    write("Object too heavy to carry"),
+    nl,
+    !. % para que no la mueva cuando no se puede mover
 
 take(_):-
     write("There is no object with that name!"),
@@ -507,9 +511,9 @@ is_contained_in(T1, T2):-
     location_list(List, T2),
     member(T1, List),
     atom(T1).
-% is_contained_in(T1,T2) :-
-%     location(X,T2),
-%     is_contained_in(T1,X).
+is_contained_in(T1,T2) :-
+    location(X,T2),
+    is_contained_in(T1,X).
 
 
 
