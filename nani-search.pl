@@ -74,6 +74,7 @@ location(stove, kitchen).
 location(microwave, kitchen).
 location(apple, kitchen).
 location(knife, kitchen).
+location('bedroom mom keys', kitchen).
 
 location(object(car, green, 140), garage).
 location(karcher, garage).
@@ -99,7 +100,7 @@ location(toolbox, laundry).
 
 location('main door', 'main access').
 location(flowers, 'main access').
-location('main access keys', flowers).
+location('reciever keys', flowers).
 location(object(mat, white, 0.7), 'main access').
 location(object(bench, white, 100), 'main access').
 
@@ -110,16 +111,19 @@ location(shower, 'reciever wc').
 location('old fridge', 'storage room').
 location('broken table', 'storage room').
 location(object(corpse, black, 50), 'storage room').
-location(object(key, golden, 0.2), corpse).
+location('master key', corpse).
+
 
 location(object(bed, white, 30), 'bedroom brother').
 location(object(desk, brown, 40), 'bedroom brother').
 location(closet, 'bedroom brother').
 location('secret box', 'bedroom brother').
+location(flashlight, 'bedroom brother').
 
 location(bed, 'bedroom mom').
 location(cabinet, 'bedroom mom').
 location(closet, 'bedroom mom').
+location('storage room keys', 'bedroom mom').
 
 location(toilet, 'upstairs wc').
 location(shower, 'upstairs wc').
@@ -175,6 +179,7 @@ door('upstairs lobby', 'upstairs wc').
 locked(backyard, 'storage room').
 locked('upstairs lobby', 'bedroom mom').
 locked(garage, kitchen).
+locked('main access', reciever).
 
 hide_spot(fridge, kitchen).
 hide_spot(cabinet, 'bedroom mom').
@@ -265,6 +270,19 @@ look :-
     write('You can go to:'),
     nl, list_connections(Place),
     !.
+
+look :- 
+    here(Place),
+    has(flashlight),
+    write('You are in the '),
+    write(Place),
+    nl,
+    write('You can see:'),
+    nl, list_things(Place),
+    write('You can go to:'),
+    nl, list_connections(Place),
+    !.
+
 look :-
     write("The light is turned off").
 
@@ -477,6 +495,12 @@ drink(_) :-
 
 turn_on :-
     here(Where),
+    Where = 'storage room',
+    write("The light won't turn on"),
+    !.
+
+turn_on :-
+    here(Where),
     off(Where),
     retract(off(Where)),
     asserta(on(Where)),
@@ -496,6 +520,36 @@ turn_off :-
     write("The light is already off").
 
 unlock(To) :-
+    To = reciever,
+    has('reciever keys'),
+    unlock_door(To),
+    !.
+
+unlock(To) :-
+    To = 'bedroom mom',
+    has('bedroom mom keys'),
+    unlock_door(To),
+    !.
+
+unlock(To) :-
+    To = 'storage room',
+    has('storage room keys'),
+    unlock_door(To),
+    !.
+
+unlock(To) :-
+    has('master key'),
+    unlock_door(To),
+    !.
+
+
+unlock(_) :-
+    write("You need a key for that"),
+    nl,
+    fail.
+
+
+unlock_door(To) :-
     here(Where),
     retract(locked(Where, To)),
     write("You unlocked the door from the "),
@@ -503,7 +557,6 @@ unlock(To) :-
     write(" to the "),
     write(To),
     !.
-
 
 is_contained_in(T1,T2) :-
     location(T1,T2).
