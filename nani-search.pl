@@ -9,6 +9,15 @@
     location_list/2,
     off/1.
 
+:- op(20, fx, take).
+:- op(20, fx, goto).
+:- op(20, fx, drop).
+:- op(20, fx, put_down).
+:- op(20, fx, eat).
+:- op(20, fx, unlock).
+:- op(20, fx, drink).
+:- op(20, fx, hide).
+
 
 
 % CUARTOS
@@ -446,7 +455,8 @@ eat(Food) :-
     edible(Food),
     retract(has(Food)),
     write("You ate: "),
-    write(Food). 
+    write(Food),
+    !. 
 eat(_) :-
     write("You can't eat that, honey!").
 
@@ -455,7 +465,8 @@ drink(Food) :-
     drinkable(Food),
     retract(has(Food)),
     write("You drank: "),
-    write(Food). 
+    write(Food),
+    !. 
 drink(_) :-
     write("You can't drink that, honey!").
 
