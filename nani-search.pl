@@ -148,7 +148,7 @@ location(object(tree, green, 100), backyard).
 
 
 location_list([chair, 'mobile table', lock], kitchen).
-location_list([dogpoo, leaf], 'main access').
+location_list([object(chips, blue, 2), dogpoo, leaf], 'main access').
 location_list([cross, 'broken glass'], staricase).
 location_list([hammock, bench, pot], backyard).
 location_list([weed, cheeto], 'music room').
@@ -331,6 +331,7 @@ take(Thing) :-
     !.
 
 take(Thing) :-
+    not(room(Object)),
     is_contained_in(Thing, Object),
     retract(location(Thing, Object)),
     asserta(has(Thing)),
@@ -353,10 +354,22 @@ take(Thing) :-
     nl,
     !.
 
+% take(Thing) :-
+%     here(Where),
+%     is_contained_in(object(Thing, Color, Weight), Where),
+%     remove(object(Thing, Color, Weight), List, Remaining),
+%     retract(location_list(List, Where)),
+%     asserta(location_list(Remaining, Where)),
+%     asserta(has(object(Thing, Color, Weight))),
+%     write("You took: "),
+%     write(Thing),
+%     nl,
+%     !.
+
 
 take(Thing) :-
     here(Where),
-    location(object(Thing, Color, Weight), Where),
+    is_contained_in(object(Thing, Color, Weight), Where),
     strength(Strength),
     Weight =< Strength,
     retract(location(object(Thing, Color, Weight), Where)),
@@ -366,10 +379,25 @@ take(Thing) :-
     nl,
     !.
 
+take(Thing) :-
+    here(Where),
+    atom(Thing),
+    is_contained_in(object(Thing, Color, Weight), Where),
+    strength(Strength),
+    Weight =< Strength,
+    location_list(List, Where),
+    remove(object(Thing, Color, Weight), List, Remaining),
+    asserta(location_list(Remaining, Where)),
+    asserta(has(object(Thing, Color, Weight))),
+    write("You took: "),
+    write(Thing),
+    nl,
+    !.
+
 
 take(Thing) :-
     here(Where),
-    location(object(Thing, _, Weight), Where),
+    is_contained_in(object(Thing, _, Weight), Where),
     strength(Strength),
     Weight > Strength,
     write("Object too heavy to carry"),
@@ -562,8 +590,7 @@ is_contained_in(T1,T2) :-
     location(T1,T2).
 is_contained_in(T1, T2):-
     location_list(List, T2),
-    member(T1, List),
-    atom(T1).
+    member(T1, List).
 is_contained_in(T1,T2) :-
     location(X,T2),
     is_contained_in(T1,X).
@@ -571,6 +598,7 @@ is_contained_in(T1,T2) :-
 
 
 member(H, [H | _]).
+
 member(X, [_ | T]):-
     member(X, T).
 
