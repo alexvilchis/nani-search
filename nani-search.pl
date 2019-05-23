@@ -207,15 +207,6 @@ where_food(X, Y) :-
 
 
 list_things(Place) :-
-    is_contained_in(object(Thing, Color, Weight),Place),
-    tab(2),
-    write("- "),
-    write('A '),
-    write(Color),tab(1),
-    write(Thing), write(', weighing '),
-    write(Weight), write(' pounds'), nl,
-    fail.
-list_things(Place) :-
     is_contained_in(Thing, Place),
     atom(Thing), % to avoid repeating complex things
     tab(2),
@@ -223,6 +214,16 @@ list_things(Place) :-
     write(Thing),
     nl,
     fail. 
+list_things(Place) :-
+    is_contained_in(object(Thing, Color, Weight),Place),
+    tab(2),
+    write("- "),
+    write('A '),
+    write(Color),tab(1),
+    write(Thing), write(', weighing '),
+    write(Weight), write(' pounds'), 
+    nl,
+    fail.
 
 list_things(_).
 
@@ -490,12 +491,12 @@ unlock(To) :-
 is_contained_in(T1,T2) :-
     location(T1,T2).
 is_contained_in(T1, T2):-
-    atom(T1),
     location_list(List, T2),
-    member(T1, List).
-is_contained_in(T1,T2) :-
-    location(X,T2),
-    is_contained_in(T1,X).
+    member(T1, List),
+    atom(T1).
+% is_contained_in(T1,T2) :-
+%     location(X,T2),
+%     is_contained_in(T1,X).
 
 
 
