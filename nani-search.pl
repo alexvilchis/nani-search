@@ -6,6 +6,7 @@
     on/1,
     locked/2,
     hidden_in/1,
+    location_list/2,
     off/1.
 
 
@@ -87,10 +88,10 @@ location(sink, laundry).
 location(toolbox, laundry).
 
 location('main door', 'main access').
-location(object(bench, white, 100), 'main access').
 location(flowers, 'main access').
 location('main access keys', flowers).
 location(object(mat, white, 0.7), 'main access').
+location(object(bench, white, 100), 'main access').
 
 location(toilet, 'reciever wc').
 location(sink, 'reciever wc').
@@ -222,6 +223,7 @@ list_things(Place) :-
     write(Thing),
     nl,
     fail. 
+
 list_things(_).
 
 
@@ -288,8 +290,8 @@ can_go(Place) :- % como un else
 
 
 take(Thing) :-
-    can_take(Thing),
     here(Where),
+    location(Thing, Where),
     retract(location(Thing, Where)),
     asserta(has(Thing)),
     write("You took: "),
@@ -297,14 +299,38 @@ take(Thing) :-
     nl,
     !.
 
-can_take(Thing) :-
+take(Thing) :-
     here(Where),
-    location(Thing, Where).
+    location_list(List, Where),
+    member(Thing, List),
+    remove(Thing, List, Remaining),
+    retract(location_list(List, Where)),
+    asserta(location_list(Remaining, Where)),
+    asserta(has(Thing)),
+    write("You took: "),
+    write(Thing),
+    nl,
+    !.
 
-can_take(_) :- % como un else
+take(_):-
     write("There is no object with that name!"),
     nl,
     fail. % para que no la mueva cuando no se puede mover
+
+% can_take(Thing) :-
+%     here(Where),
+%     location(Thing, Where).
+
+
+% can_take(Thing) :-
+%     here(Where),
+%     location_list(List, Where),
+%     member(Thing, List).
+
+% can_take(_) :- % como un else
+%     write("There is no object with that name!"),
+%     nl,
+%     fail. % para que no la mueva cuando no se puede mover
 
 
 
@@ -451,10 +477,11 @@ turn_off :-
 turn_off :-
     write("The light is already off").
 
-unlock(From, To) :-
-    retract(locked(From, To)),
+unlock(To) :-
+    here(Where),
+    retract(locked(Where, To)),
     write("You unlocked the door from the "),
-    write(From),
+    write(Where),
     write(" to the "),
     write(To),
     !.
@@ -462,6 +489,22 @@ unlock(From, To) :-
 
 is_contained_in(T1,T2) :-
     location(T1,T2).
+is_contained_in(T1, T2):-
+    atom(T1),
+    location_list(List, T2),
+    member(T1, List).
 is_contained_in(T1,T2) :-
     location(X,T2),
     is_contained_in(T1,X).
+
+
+
+member(H, [H | _]).
+member(X, [_ | T]):-
+    member(X, T).
+
+
+remove(H, [H | T], T).
+
+remove(Thing, [H | T1], [H | T2]):-
+    remove(Thing, T1, T2).
