@@ -218,10 +218,7 @@ list_things(Place) :-
     is_contained_in(object(Thing, Color, Weight),Place),
     tab(2),
     write("- "),
-    write('A '),
-    write(Color),tab(1),
-    write(Thing), write(', weighing '),
-    write(Weight), write(' pounds'), 
+    write_object(Thing, Color, Weight),
     nl,
     fail.
 
@@ -239,6 +236,11 @@ list_connections(_).
 
 here('main access').
 
+write_object(Thing, Color, Weight):-
+    write('A '),
+    write(Color),tab(1),
+    write(Thing), write(', weighing '),
+    write(Weight), write(' pounds').
 
 
 
@@ -313,10 +315,6 @@ take(Thing) :-
     nl,
     !.
 
-take(_):-
-    write("There is no object with that name!"),
-    nl,
-    fail. % para que no la mueva cuando no se puede mover
 
 % can_take(Thing) :-
 %     here(Where),
@@ -335,9 +333,9 @@ take(_):-
 
 
 
-take_object(Thing) :-
-    can_take_object(Thing),
+take(Thing) :-
     here(Where),
+    location(object(Thing, _, _), Where),
     retract(location(object(Thing, Color, Weight), Where)),
     asserta(has(object(Thing, Color, Weight))),
     write("You took: "),
@@ -345,29 +343,31 @@ take_object(Thing) :-
     nl,
     !.
 
-can_take_object(Thing) :-
-    here(Where),
-    location(object(Thing, _, _), Where).
 
-can_take_object(_) :- % como un else
-    write("There is no complex object with that name!"),
+
+take(_):-
+    write("There is no object with that name!"),
     nl,
     fail. % para que no la mueva cuando no se puede mover
-
-
+    
 
 drop(Thing) :-
-    can_drop(Thing),
+    has(Thing),
     retract(has(Thing)),
     % no se aserta nada porque se rompe el objeto
     write("You dropped: "),
     write(Thing),
     !.
 
-can_drop(Thing) :-
-    has(Thing).
+drop(Thing) :-
+    has(object(Thing, Color, Weight)),
+    retract(has(object(Thing, Color, Weight))),
+    % no se aserta nada porque se rompe el objeto
+    write("You dropped: "),
+    write(Thing),
+    !.
 
-can_drop(_) :- % como un else
+drop(_) :- % como un else
     write("You don't have that!"),
     nl,
     fail. % para que no la mueva cuando no se puede mover
@@ -392,7 +392,7 @@ can_drop_object(_) :- % como un else
 
 
 put_down(Thing) :-
-    can_put_down(Thing),
+    has(Thing),
     here(Where),
     retract(has(Thing)),
     asserta(location(Thing, Where)),
@@ -400,31 +400,21 @@ put_down(Thing) :-
     write(Thing),
     !.
 
-can_put_down(Thing) :-
-    has(Thing).
-can_put_down(_) :- % como un else
-    write("You don't have that!"),
-    nl,
-    fail. % para que no la mueva cuando no se puede mover
-
-
-
-put_down_object(Thing) :-
-    can_put_down_object(Thing),
+put_down(Thing) :-
     here(Where),
-    retract(has(object(Thing, _, _))),
-    asserta(location(object(Thing, _, _), Where)),
+    has(object(Thing, Color, Weight)),
+    retract(has(object(Thing, Color, Weight))),
+    asserta(location(object(Thing, Color, Weight), Where)),
     write("You put down: "),
     write(Thing),
     !.
 
-can_put_down_object(Thing) :-
-    has(object(Thing, _, _)).
-can_put_down_object(_) :- % como un else
+put_down(_) :- % como un else
     write("You don't have that!"),
     nl,
     fail. % para que no la mueva cuando no se puede mover
     
+
 inventory :-
     not(has(_)),
     write("You don't have anything"),
@@ -432,10 +422,22 @@ inventory :-
 
 inventory :-
     write("You have: "),
+    write_item(_).
+    
+
+write_item(Thing):-
     has(Thing),
+    atom(Thing),
     nl,
     write(" - "),
     write(Thing),
+    fail. 
+
+write_item(Thing):-
+    has(object(Thing, Color, Weight)),
+    nl,
+    write(" - "),
+    write_object(Thing, Color, Weight),
     fail. 
 
 
